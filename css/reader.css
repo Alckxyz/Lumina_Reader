@@ -1,0 +1,90 @@
+#viewer {
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+    height: 100%;
+    overflow-y: auto;
+    background: #151515;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+#welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    opacity: 0.6;
+}
+
+.welcome-icon { width: 64px; height: 64px; margin-bottom: 1rem; }
+
+.reader-word {
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+    padding: 0 1px;
+    display: inline;
+    -webkit-touch-callout: none;
+}
+
+.reader-word:hover { background: rgba(255,255,255,0.15); }
+
+/* Color Classes */
+.word-new { color: var(--color-new) !important; }
+.word-ignored { 
+    text-decoration: line-through !important; 
+    color: #ff4d4d !important; 
+    text-decoration-color: #ff4d4d !important;
+    opacity: 0.7;
+}
+.word-custom-0 { color: var(--color-custom-0) !important; }
+.word-custom-1 { color: var(--color-custom-1) !important; }
+.word-custom-2 { color: var(--color-custom-2) !important; }
+.word-custom-3 { color: var(--color-custom-3) !important; }
+.word-custom-4 { color: var(--color-custom-4) !important; }
+
+.phrase-selecting {
+    background-color: rgba(3, 218, 198, 0.4) !important;
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+    position: relative;
+    z-index: 10;
+}
+
+.tts-highlight {
+    background-color: rgba(187, 134, 252, 0.25);
+    border-bottom: 2px solid var(--primary-color);
+    border-radius: 2px;
+}
+
+.sentence-copy-flash {
+    background-color: rgba(3, 218, 198, 0.6) !important;
+    transition: background-color 0.3s ease;
+}
+
+.txt-content {
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.finish-reading-container {
+    margin-top: 40px;
+    padding: 30px 0;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.finish-btn {
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    box-shadow: 0 4px 15px rgba(187, 134, 252, 0.3);
+}

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumina Reader - Language Learner</title>
+    <script type="importmap">
+    {
+      "imports": {
+        "epubjs": "https://esm.sh/epubjs@0.3.93",
+        "pdfjs-dist": "https://esm.sh/pdfjs-dist@4.0.379",
+        "lucide": "https://esm.sh/lucide@0.344.0"
+      }
+    }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDJIcAAozYQDaMJzRpS3XJOJ-_MjXAKvHU",
+          authDomain: "lumina-words.firebaseapp.com",
+          projectId: "lumina-words",
+          storageBucket: "lumina-words.firebasestorage.app",
+          messagingSenderId: "949656152543",
+          appId: "1:949656152543:web:2674d8cdebd37a579e7c6a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null;
+
+        window.loginWithGoogle = async function() {
+          try {
+            await signInWithPopup(auth, provider);
+          } catch (error) {
+            console.error("Auth Error:", error);
+            alert("Login failed: " + error.message);
+          }
+        };
+
+        window.logoutFirebase = function() {
+          signOut(auth);
+        };
+
+        window.onAuthChange = function(callback) {
+          onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            callback(user);
+          });
+        };
+
+        window.saveToFirebase = function(data) {
+          if (!currentUser) return Promise.resolve();
+          return setDoc(doc(db, "users", currentUser.uid), data);
+        };
+
+        window.listenFromFirebase = function(callback) {
+          if (!currentUser) return;
+          return onSnapshot(doc(db, "users", currentUser.uid), (snapshot) => {
+            const data = snapshot.data();
+            if (data) callback(data);
+          });
+        };
+    </script>
+</head>
+<body class="dark-theme">
+    <div id="auth-overlay" class="modal">
+        <div class="modal-content auth-modal">
+            <i data-lucide="book-open" style="width: 48px; height: 48px; color: var(--primary-color); margin-bottom: 1rem;"></i>
+            <h2>Welcome to Lumina</h2>
+            <p>Please sign in to sync your progress and dictionary across devices.</p>
+            <button id="google-login-btn" class="primary-btn login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
+                Sign in with Google
+            </button>
+            <p class="setting-hint" style="margin-top: 10px;">Guest mode is read-only (not implemented, login required).</p>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Header Controls -->
+        <header class="controls-header">
+            <div class="left-controls">
+                <label for="file-upload" class="icon-btn" title="Open Book">
+                    <i data-lucide="file-text"></i>
+                    <input type="file" id="file-upload" accept=".epub,.pdf,.txt" hidden>
+                </label>
+                <label for="batch-import-input" class="icon-btn" title="Batch Import (Book, Audio, Data)">
+                    <i data-lucide="package-plus"></i>
+                    <input type="file" id="batch-import-input" accept=".epub,.pdf,.txt,.json,audio/*" multiple hidden>
+                </label>
+                <button id="word-list-btn" class="icon-btn" title="Saved Words">
+                    <i data-lucide="list"></i>
+                </button>
+                <span id="book-title">No book loaded</span>
+            </div>
+            <div class="navigation-center">
+                <div class="progress-container">
+                    <input type="range" id="progress-slider" min="0" value="0" step="1">
+                </div>
+                <div class="page-info">
+                    <span id="page-display"></span>
+                </div>
+            </div>
+            <div class="right-controls">
+                <button id="prev-btn" class="icon-btn"><i data-lucide="chevron-left"></i></button>
+                <button id="next-btn" class="icon-btn"><i data-lucide="chevron-right"></i></button>
+                <button id="sync-progress-btn" class="icon-btn" title="Sync Progress">
+                    <i data-lucide="upload-cloud"></i>
+                </button>
+                <button id="settings-btn" class="icon-btn"><i data-lucide="settings"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Viewer -->
+        <main id="viewer-container">
+            <div id="viewer">
+                <div id="welcome-screen">
+                    <i data-lucide="book-open" class="welcome-icon"></i>
+                    <h1>Lumina Reader</h1>
+                    <p>Upload a file. Words are blue by default (New).</p>
+                    <p>Press 'X' to remove color, 'Z' to make blue again.</p>
+                </div>
+            </div>
+            <!-- Word Tooltip -->
+            <div id="word-tooltip" class="word-tooltip hidden"></div>
+            <!-- Selection Popup -->
+            <button id="selection-popup" class="selection-popup hidden">
+                <i data-lucide="plus-circle" style="width:16px;height:16px;margin-right:4px;"></i>
+                Create Phrase
+            </button>
+            <!-- Action Popup (Mobile Long Press) -->
+            <div id="action-popup" class="action-popup hidden">
+                <button id="action-translate" class="action-item">
+                    <i data-lucide="languages"></i>
+                    <span>Translate</span>
+                </button>
+                <div class="action-divider"></div>
+                <button id="action-copy" class="action-item">
+                    <i data-lucide="copy"></i>
+                    <span>Copy</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- TTS Bottom Bar -->
+        <footer class="tts-bar hidden" id="tts-bar">
+            <div class="tts-controls">
+                <div class="playback-main-controls">
+                    <button id="tts-rewind" class="icon-btn skip-btn" title="Back 5s"><i data-lucide="rotate-ccw"></i></button>
+                    <button id="tts-play-pause" class="play-btn"><i data-lucide="play"></i></button>
+                    <button id="tts-forward" class="icon-btn skip-btn" title="Forward 5s"><i data-lucide="rotate-cw"></i></button>
+                </div>
+                <div class="speed-control">
+                    <button id="speed-down" class="icon-btn speed-btn" title="Slower">
+                        <i data-lucide="minus"></i>
+                    </button>
+                    <span id="speed-display">1.0x</span>
+                    <button id="speed-up" class="icon-btn speed-btn" title="Faster">
+                        <i data-lucide="plus"></i>
+                    </button>
+                </div>
+                <div class="voice-info">
+                    <label id="audio-upload-label" for="audio-upload" class="secondary-btn audio-upload-label" title="Upload Audio Narration">
+                        <i data-lucide="upload" style="width: 16px; height: 16px; margin-right: 5px;"></i>
+                        <span>Upload Audio</span>
+                        <input type="file" id="audio-upload" accept="audio/*" hidden>
+                    </label>
+                    <span id="audio-filename" class="audio-filename">No audio loaded</span>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Settings</h3>
+                    <button class="close-modal-btn">&times;</button>
+                </div>
+                
+                <div class="setting-item">
+                    <label>Font Size</label>
+                    <input type="range" id="font-size-slider" min="12" max="32" value="18">
+                </div>
+
+                <div class="setting-item">
+                    <label>Paragraphs per Page (TXT/PDF)</label>
+                    <input type="range" id="paragraphs-per-page-slider" min="1" max="50" value="6">
+                    <span id="paragraphs-val" style="font-size: 0.8rem; color: var(--text-muted);">6</span>
+                </div>
+
+                <div class="setting-section">
+                    <h4>Learning Colors (5 Custom)</h4>
+                    <div id="custom-colors-grid" class="colors-grid">
+                        <!-- Color Pickers Generated by JS -->
+                    </div>
+                </div>
+
+                <div class="setting-section">
+                    <h4>Data Management (Session Only)</h4>
+                    <p class="setting-hint">Data is NOT saved automatically to browser. Export to save permanently.</p>
+                    <div class="data-actions">
+                        <button id="export-data" class="secondary-btn">Export All Data</button>
+                        <button id="import-data-btn" class="secondary-btn">Import All Data</button>
+                        <input type="file" id="import-data-input" accept=".json" hidden>
+                    </div>
+                </div>
+                
+                <button id="close-settings" class="primary-btn">Save & Close</button>
+            </div>
+        </div>
+
+        <!-- Translation Modal -->
+        <div id="translation-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Translation</h3>
+                    <button id="close-translation-modal" class="close-modal-btn">&times;</button>
+                </div>
+                <div id="translation-loading" class="loading-spinner hidden">Translating...</div>
+                <div id="translation-container">
+                    <p id="original-sentence" class="original-text"></p>
+                    <div class="translation-divider"></div>
+                    <p id="translated-sentence" class="translated-text"></p>
+                </div>
+                <div class="modal-actions">
+                    <button id="copy-translation-btn" class="secondary-btn">Copy Translation</button>
+                    <button id="close-translation-btn" class="primary-btn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Word List Modal -->
+        <div id="word-list-modal" class="modal hidden">
+            <div class="modal-content word-list-modal-content">
+                <div class="modal-header">
+                    <h3>Saved Words</h3>
+                    <button id="close-word-list-modal" class="close-modal-btn">&times;</button>
+                </div>
+                <div class="word-list-controls">
+                    <div class="word-list-search-row">
+                        <input type="text" id="word-list-search" placeholder="Search words or meanings...">
+                        <button id="add-word-manual-btn" class="icon-btn small highlight-btn" title="Add Word Manually">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    <div class="word-list-sort-row">
+                        <span>Sort by:</span>
+                        <select id="word-list-sort">
+                            <option value="alpha">Name (A-Z)</option>
+                            <option value="newest">Latest Created</option>
+                            <option value="updated">Recently Modified</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="word-list-container" class="word-list-container">
+                    <!-- Words will be injected here -->
+                </div>
+                <div class="modal-actions">
+                    <button id="close-word-list-btn" class="primary-btn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Word Info Modal -->
+        <div id="word-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-word-title">Word</h3>
+                    <button id="close-word-modal" class="close-modal-btn">&times;</button>
+                </div>
+                
+                <div class="word-form">
+                    <div class="form-item">
+                        <label>Status Color</label>
+                        <div id="word-color-selector" class="color-bubbles">
+                            <!-- 5 options + 1 default (Blue) -->
+                        </div>
+                    </div>
+
+                    <div class="form-item">
+                        <label>Meaning</label>
+                        <input type="text" id="word-meaning" placeholder="Translate or define...">
+                    </div>
+
+                    <div class="form-item" style="position: relative;">
+                        <label>Tags (comma separated)</label>
+                        <input type="text" id="word-tags" placeholder="e.g. verb, essential, difficult" autocomplete="off">
+                        <div id="word-tags-suggestions" class="autocomplete-list hidden"></div>
+                    </div>
+
+                    <div class="form-item" style="position: relative;">
+                        <label>Base form</label>
+                        <div class="input-with-action">
+                            <input type="text" id="word-link" placeholder="e.g. cats -> cat" autocomplete="off">
+                            <button id="edit-linked-word" class="icon-btn small" title="Edit base form"><i data-lucide="pencil"></i></button>
+                        </div>
+                        <div id="word-link-suggestions" class="autocomplete-list hidden"></div>
+                        <span id="linked-meaning-preview" style="font-size: 0.75rem; color: var(--secondary-color); margin-top: 2px; min-height: 1em;"></span>
+                    </div>
+
+                    <div class="form-item checkbox-item">
+                        <input type="checkbox" id="word-share-color" checked>
+                        <label for="word-share-color">Share color with linked word</label>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button id="save-word-data" class="primary-btn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

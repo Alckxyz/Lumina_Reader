@@ -1,0 +1,18 @@
+/* Lumina Reader - Main Stylesheet Entry Point */
+
+@import url('./css/base.css');
+@import url('./css/layout.css');
+@import url('./css/reader.css');
+@import url('./css/popups.css');
+@import url('./css/modals.css');
+@import url('./css/mobile.css');
+
+/* 
+   tombstone: Original monolithic styles moved to modular css/ directory.
+   - Variables and Resets moved to base.css
+   - Header, Footer, and basic layout moved to layout.css
+   - Reader, Words, and Highlighting moved to reader.css
+   - Tooltips, Popups, and Autocomplete moved to popups.css
+   - All Modal and Auth Overlay styles moved to modals.css
+   - Media queries and mobile-specific overrides moved to mobile.css
+*/

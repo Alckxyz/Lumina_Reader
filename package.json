@@ -1,0 +1,11 @@
+{
+  "name": "lumina-reader",
+  "version": "1.0.0",
+  "description": "A dark-themed book reader with TTS",
+  "main": "index.html",
+  "dependencies": {
+    "epubjs": "^0.3.93",
+    "pdfjs-dist": "^4.0.379",
+    "lucide": "^0.344.0"
+  }
+}
