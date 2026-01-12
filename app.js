@@ -179,6 +179,22 @@ function setupEventListeners() {
 
     els.saveWordBtn.addEventListener('click', editorManager.saveWordData);
 
+    // Close modals when clicking on the backdrop
+    [els.settingsModal, els.wordModal, els.wordListModal, els.translationModal].forEach(modal => {
+        if (!modal) return;
+        modal.addEventListener('click', (e) => {
+            // If the click is exactly on the modal backdrop (not its children)
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                // Ensure settings are applied if the settings modal is closed this way
+                if (modal === els.settingsModal) {
+                    settingsManager.applyGlobalColors();
+                    if (runtime.rendition) readerManager.applyTextStyles();
+                }
+            }
+        });
+    });
+
     els.modalWordTitle.addEventListener('click', () => {
         navigator.clipboard.writeText(els.modalWordTitle.innerText);
         const originalColor = els.modalWordTitle.style.color;
