@@ -93,7 +93,5 @@ export async function handleBatchImport(e) {
         await handleImport(dataFile, true);
     }
 
-    if (bookFile || audioFile || dataFile) {
-        alert('Batch import completed.');
-    }
+
 }
