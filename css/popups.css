@@ -9,13 +9,17 @@
     font-size: 0.85rem;
     z-index: 1000;
     pointer-events: none;
-    max-width: 200px;
+    max-width: 240px;
     border: 1px solid #444;
 }
 
 .word-tooltip.hidden { display: none; }
-.word-tooltip .tt-word { font-weight: bold; color: var(--primary-color); display: block; margin-bottom: 4px; border-bottom: 1px solid #444; padding-bottom: 2px; }
-.word-tooltip .tt-meaning { font-style: italic; display: block; }
+.word-tooltip .tt-word { font-weight: bold; display: block; margin-bottom: 4px; border-bottom: 1px solid #444; padding-bottom: 2px; }
+.word-tooltip .tt-word-main { color: var(--primary-color); }
+.word-tooltip .tt-word-linked { color: var(--secondary-color); }
+.word-tooltip .tt-meaning-inline { color: #fff; font-weight: normal; }
+.word-tooltip .tt-image { width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin: 4px 0 8px 0; display: block; border: 1px solid #444; }
+.word-tooltip .tt-meaning { font-style: italic; display: block; font-weight: normal; }
 .word-tooltip .tt-tags { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block; }
 
 /* Selection Popup */

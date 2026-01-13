@@ -84,9 +84,10 @@ export function openWordEditor(word, displayText = null) {
     els.actionPopup.classList.add('hidden');
     runtime.currentWord = word;
     runtime.colorChangedInEditor = false;
-    const data = dictionary[word] || { status: 'new', colorIdx: 0, meaning: '', tags: [], linked: '', shareColor: true };
+    const data = dictionary[word] || { status: 'new', colorIdx: 0, meaning: '', tags: [], linked: '', shareColor: true, imageUrl: '' };
     document.getElementById('modal-word-title').innerText = displayText || word;
     els.wordMeaningInput.value = data.meaning || '';
+    els.wordImageInput.value = data.imageUrl || '';
     els.wordTagsInput.value = (data.tags || []).join(', ');
     els.wordLinkInput.value = data.linked || '';
     els.wordShareColorCheck.checked = data.hasOwnProperty('shareColor') ? data.shareColor : true;
@@ -163,6 +164,7 @@ export function saveWordData(shouldClose = true) {
     }
 
     const meaning = els.wordMeaningInput.value.trim();
+    const imageUrl = els.wordImageInput.value.trim();
     const tags = els.wordTagsInput.value.split(',').map(t => t.trim()).filter(t => t);
     const linked = els.wordLinkInput.value.trim().toLowerCase();
     const shareColor = els.wordShareColorCheck.checked;
@@ -179,6 +181,7 @@ export function saveWordData(shouldClose = true) {
         status, 
         colorIdx, 
         meaning, 
+        imageUrl,
         tags, 
         linked, 
         shareColor, 

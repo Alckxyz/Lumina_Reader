@@ -22,6 +22,7 @@ export const els = {
     wordModal: document.getElementById('word-modal'),
     modalWordTitle: document.getElementById('modal-word-title'),
     wordMeaningInput: document.getElementById('word-meaning'),
+    wordImageInput: document.getElementById('word-image-url'),
     wordTagsInput: document.getElementById('word-tags'),
     wordTagsSuggestions: document.getElementById('word-tags-suggestions'),
     wordLinkInput: document.getElementById('word-link'),
