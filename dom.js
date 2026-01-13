@@ -61,5 +61,6 @@ export const els = {
     closeTranslationModal: document.getElementById('close-translation-modal'),
     closeTranslationBtn: document.getElementById('close-translation-btn'),
     copyTranslationBtn: document.getElementById('copy-translation-btn'),
-    syncProgressBtn: document.getElementById('sync-progress-btn')
+    syncProgressBtn: document.getElementById('sync-progress-btn'),
+    authStatusContainer: document.getElementById('auth-status-container')
 };

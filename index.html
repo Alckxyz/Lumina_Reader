@@ -70,19 +70,6 @@
     </script>
 </head>
 <body class="dark-theme">
-    <div id="auth-overlay" class="modal">
-        <div class="modal-content auth-modal">
-            <i data-lucide="book-open" style="width: 48px; height: 48px; color: var(--primary-color); margin-bottom: 1rem;"></i>
-            <h2>Welcome to Lumina</h2>
-            <p>Please sign in to sync your progress and dictionary across devices.</p>
-            <button id="google-login-btn" class="primary-btn login-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
-                Sign in with Google
-            </button>
-            <p class="setting-hint" style="margin-top: 10px;">Guest mode is read-only (not implemented, login required).</p>
-        </div>
-    </div>
-
     <div id="app">
         <!-- Header Controls -->
         <header class="controls-header">
@@ -109,6 +96,7 @@
                 </div>
             </div>
             <div class="right-controls">
+                <div id="auth-status-container"></div>
                 <button id="prev-btn" class="icon-btn"><i data-lucide="chevron-left"></i></button>
                 <button id="next-btn" class="icon-btn"><i data-lucide="chevron-right"></i></button>
                 <button id="sync-progress-btn" class="icon-btn" title="Sync Progress">

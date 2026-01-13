@@ -81,11 +81,23 @@ function init() {
     // Initialize Firebase Auth & Sync
     if (window.onAuthChange) {
         window.onAuthChange((user) => {
-            const authOverlay = document.getElementById('auth-overlay');
+            els.authStatusContainer.innerHTML = '';
             if (user) {
-                authOverlay.classList.add('hidden');
                 console.log("Logged in as:", user.displayName);
                 
+                // Show user avatar with logout option
+                const userBtn = document.createElement('button');
+                userBtn.className = 'user-profile-btn';
+                userBtn.title = `Logged in as ${user.displayName}. Click to logout.`;
+                userBtn.innerHTML = `<img src="${user.photoURL || `https://images.websim.com/avatar/${user.displayName}`}" alt="Profile">`;
+                userBtn.onclick = () => {
+                    if (confirm("Do you want to sign out?")) {
+                        window.logoutFirebase();
+                        window.location.reload(); // Refresh to clear state
+                    }
+                };
+                els.authStatusContainer.appendChild(userBtn);
+
                 // Start syncing data for this specific user
                 startFirebaseSync(() => {
                     wordManager.refreshViewerHighlights();
@@ -102,14 +114,14 @@ function init() {
                     els.speedDisplay.innerText = `${speed.toFixed(1)}x`;
                 });
             } else {
-                authOverlay.classList.remove('hidden');
+                // Show Login Button
+                const loginBtn = document.createElement('button');
+                loginBtn.className = 'google-login-compact';
+                loginBtn.innerText = 'Login with Google';
+                loginBtn.onclick = () => window.loginWithGoogle();
+                els.authStatusContainer.appendChild(loginBtn);
             }
         });
-    }
-
-    const loginBtn = document.getElementById('google-login-btn');
-    if (loginBtn) {
-        loginBtn.onclick = () => window.loginWithGoogle();
     }
 
     // Handle mobile back button
