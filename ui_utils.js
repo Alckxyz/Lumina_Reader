@@ -107,8 +107,16 @@ export function handleWordHover(e) {
             els.tooltip.classList.remove('hidden');
             
             const rect = target.getBoundingClientRect();
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            
             let left = rect.left;
-            let top = rect.bottom + 5;
+            let top = isMobile ? (rect.top - 10) : (rect.bottom + 5);
+
+            if (isMobile) {
+                els.tooltip.classList.add('tt-mobile');
+            } else {
+                els.tooltip.classList.remove('tt-mobile');
+            }
 
             // Adjust coordinates if inside an iframe (EPUB)
             if (target.ownerDocument !== document) {

@@ -234,8 +234,8 @@ export function handleSelection(e, ownerDocument = document) {
                 
                 let top, left;
                 if (isMobile) {
-                    // Position below selection on mobile to avoid overlap with native toolbars
-                    top = lastRect.bottom + 12;
+                    // Moved above as per user request (was below to avoid native toolbars)
+                    top = firstRect.top - 50;
                     left = lastRect.left + (lastRect.width / 2);
                 } else {
                     // Position above on desktop

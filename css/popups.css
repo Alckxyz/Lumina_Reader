@@ -14,6 +14,7 @@
 }
 
 .word-tooltip.hidden { display: none; }
+.word-tooltip.tt-mobile { transform: translateY(-100%); }
 .word-tooltip .tt-word { font-weight: bold; display: block; margin-bottom: 4px; border-bottom: 1px solid #444; padding-bottom: 2px; }
 .word-tooltip .tt-word-main { color: var(--primary-color); }
 .word-tooltip .tt-word-linked { color: var(--secondary-color); }
