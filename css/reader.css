@@ -4,6 +4,8 @@
     margin: 0 auto;
     height: 100%;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     background: #151515;
     border-radius: 8px;
     padding: 30px;
@@ -72,6 +74,7 @@
     line-height: 1.8;
     white-space: pre-wrap;
     word-break: break-word;
+    padding-bottom: 40px; /* Ensure content is always scrollable on short pages */
 }
 
 .finish-reading-container {

@@ -40,9 +40,10 @@ export function closeAllOverlays() {
 export function updateHeaderVisibility(scrollTop) {
     const header = document.querySelector('.controls-header');
     if (!header) return;
-    if (scrollTop > 10) {
+    // Increased threshold and added sticky-top behavior to prevent scroll lock on mobile
+    if (scrollTop > 20) {
         header.classList.add('hidden-scroll');
-    } else {
+    } else if (scrollTop <= 2) {
         header.classList.remove('hidden-scroll');
     }
 }

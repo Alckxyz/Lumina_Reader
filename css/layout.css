@@ -19,6 +19,7 @@
     opacity: 0 !important;
     border-bottom: none !important;
     pointer-events: none;
+    visibility: hidden;
 }
 
 .left-controls, .right-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; }

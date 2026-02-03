@@ -131,6 +131,14 @@ export async function loadEpub(file) {
         runtime.currentBook = ePub(e.target.result);
         runtime.rendition = runtime.currentBook.renderTo("viewer", { width: "100%", height: "100%", flow: "scrolled" });
 
+        // Fix for mobile: Notify rendition of size changes when header hides/shows
+        const resizeObserver = new ResizeObserver(() => {
+            if (runtime.rendition) {
+                try { runtime.rendition.resize(); } catch(e) {}
+            }
+        });
+        resizeObserver.observe(els.viewer);
+
         runtime.currentBook.ready.then(() => {
             runtime.totalContentLength = 1000000; // Virtual length for percentage-based sync
             els.progressSlider.max = 100;
@@ -287,7 +295,11 @@ export function renderPage() {
         initTouchSelection(els.viewer, document);
     }
     
-    els.viewer.scrollTop = 0;
+    // Ensure scroll is reset after DOM update and layout
+    setTimeout(() => {
+        els.viewer.scrollTop = 0;
+    }, 0);
+    
     updateHeaderVisibility(0);
     updatePageDisplay();
     applyTextStyles();
