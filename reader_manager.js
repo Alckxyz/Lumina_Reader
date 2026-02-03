@@ -29,6 +29,7 @@ export function updatePageDisplay() {
 }
 
 export function navigate(dir, shouldNeutralize = false) {
+    handleWordOut();
     if (dir === 1 && shouldNeutralize) {
         neutralizeVisibleBlueWords();
     }
@@ -207,6 +208,7 @@ export async function loadEpub(file) {
             }
 
             contents.window.addEventListener('scroll', () => {
+                handleWordOut();
                 updateHeaderVisibility(contents.window.scrollY || contents.document.documentElement.scrollTop);
             });
 

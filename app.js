@@ -242,6 +242,7 @@ function setupEventListeners() {
     }
 
     els.viewer.addEventListener('scroll', () => {
+        uiUtils.handleWordOut();
         uiUtils.updateHeaderVisibility(els.viewer.scrollTop);
     });
 
