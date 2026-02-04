@@ -37,6 +37,7 @@ export const els = {
     importDataInput: document.getElementById('import-data-input'),
     exportDataBtn: document.getElementById('export-data'),
     importDataBtn: document.getElementById('import-data-btn'),
+    copyAiPromptBtn: document.getElementById('copy-ai-prompt-btn'),
     batchImportInput: document.getElementById('batch-import-input'),
     closeSettingsBtn: document.getElementById('close-settings'),
     colorGrid: document.getElementById('custom-colors-grid'),

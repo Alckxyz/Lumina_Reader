@@ -307,6 +307,113 @@ function setupEventListeners() {
         }
     });
 
+    const AI_PROMPT_TEXT = `When I send you a SINGLE word:
+
+- If the word is misspelled:
+  wrong_word ❌ → corrected_word ✅
+- If it is correct, say NOTHING about spelling.
+
+- Start the answer using this format:
+  word — type (noun, verb, adjective, tense, etc.)
+
+- Identify the base form (dictionary form).
+  - If the base form is the same, do NOT mention it.
+  - If it is different, write:
+    Base form: base_form
+
+- If the base form and the exact word have the SAME meaning:
+  → give ONLY ONE meaning and stop.
+
+- If the meanings are DIFFERENT:
+  Base form:
+  meaning
+
+  Exact word:
+  meaning
+
+- Do NOT number sections.
+- Do NOT add explanations or extra text.
+- Do NOT introduce idioms or phrasal verbs at this stage.
+
+---
+
+IDIOMS
+
+- If I send a FULL sentence using the word:
+  - Check if the word is part of an idiomatic expression in THAT sentence.
+  - ONLY THEN show:
+
+  Idiomatic expression (base form):
+  Meaning:
+
+- If no idiom appears in the sentence, do NOT mention idioms.
+
+---
+
+SYNONYM / PHRASE REPLACEMENT (USING *) — STRICT
+
+- If I send * word1:
+  - Replace the FIRST occurrence of that word in the LAST meaning you gave
+    with ONE natural synonym.
+  - The synonym MUST NOT be:
+    - the original headword being defined
+    - the same word being replaced
+
+- If I send * word1, word2, word3:
+  - Replace EACH listed word independently.
+  - Use ONE appropriate synonym per word.
+  - Keep the rest of the meaning unchanged.
+
+- If I send * a full phrase:
+  - Replace ONLY that exact phrase with a synonymous phrase.
+  - The replacement must preserve the original meaning.
+  - Do NOT rewrite the rest of the sentence.
+
+- General rules for all * replacements:
+  - Replace ONLY the specified word(s) or phrase.
+  - Do NOT repeat the original word(s) or phrase.
+  - Do NOT change word order outside the replacement.
+  - Do NOT add or remove other words.
+  - If a replacement is not possible, say:
+    Cannot apply replacement.
+
+---
+
+If I send "+" alone:
+- Give another meaning.
+
+If I send "#":
+- Give the same meaning in a different form.
+
+---
+
+FORMAT RULE (MANDATORY)
+
+Always use this structure:
+
+word — type
+
+Base form: (only if different)
+meaning
+
+Exact word: (only if meanings are different)
+meaning
+
+Do NOT repeat labels.
+Do NOT add extra text.`;
+
+    els.copyAiPromptBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(AI_PROMPT_TEXT).then(() => {
+            const originalText = els.copyAiPromptBtn.innerHTML;
+            els.copyAiPromptBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;margin-right:8px;display:inline-block;vertical-align:middle;"></i> Copied!';
+            createIcons({ icons: { Check } });
+            setTimeout(() => {
+                els.copyAiPromptBtn.innerHTML = originalText;
+                createIcons({ icons: { Copy } });
+            }, 2000);
+        });
+    });
+
     els.exportDataBtn.addEventListener('click', async () => {
         await syncAll();
         exportData();
