@@ -29,12 +29,56 @@ export async function loadTxt(file) {
     });
 }
 
-export function paginateContent(rawText, paragraphsPerPage) {
+export async function loadSrt(file) {
+    const text = await loadTxt(file);
+    // Standard SRT regex allowing for various line ending and whitespace styles
+    const regex = /(\d+)\s*\r?\n(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})\s*\r?\n([\s\S]*?)(?=\r?\n\r?\n|\r?\n\s*\r?\n|\r?\n$|$)/g;
+    let match;
+    const blocks = [];
+    
+    function timeToSeconds(timeStr) {
+        const [h, m, s] = timeStr.split(':');
+        const [sec, ms] = s.split(',');
+        return parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(sec) + (parseInt(ms) || 0) / 1000;
+    }
+
+    while ((match = regex.exec(text)) !== null) {
+        const content = match[4].replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!content) continue;
+        blocks.push({
+            start: timeToSeconds(match[2]),
+            end: timeToSeconds(match[3]),
+            text: content
+        });
+    }
+
+    const fullText = blocks.map(b => b.text).join('\n\n');
+    let currentOffset = 0;
+    const timings = blocks.map(b => {
+        const t = { ...b, charOffset: currentOffset };
+        currentOffset += b.text.length + 2; // +2 for the \n\n joining
+        return t;
+    });
+
+    return { text: fullText, timings };
+}
+
+export function paginateContent(rawText, paragraphsPerPage, skipRefinement = false) {
     // 1. Split by newlines first
     let rawParagraphs = rawText.split(/\n+/).filter(p => p.trim().length > 0);
     
     // 2. Sub-split long paragraphs into smaller chunks to "divide them into more parts"
     // This makes reading less overwhelming for language learners.
+    // Skip this for SRT to maintain strict character mapping for sync.
+    if (skipRefinement) {
+        const pages = [];
+        const size = paragraphsPerPage || 5;
+        for (let i = 0; i < rawParagraphs.length; i += size) {
+            pages.push(rawParagraphs.slice(i, i + size).join('\n\n'));
+        }
+        return pages;
+    }
+
     const refinedParagraphs = [];
     rawParagraphs.forEach(p => {
         if (p.length > 500) {

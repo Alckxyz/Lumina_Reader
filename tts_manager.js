@@ -13,6 +13,12 @@ export function updateSpeed(delta) {
     persist();
 }
 
+export function updateVolume(val) {
+    tts.setVolume(val);
+    appSettings.volume = val;
+    persist();
+}
+
 export function toggleTTS() {
     if (tts.ttsState.isSpeaking || tts.ttsState.isPaused) {
         tts.togglePauseResume(els.ttsPlayPauseBtn, Play, Pause);

@@ -112,6 +112,9 @@ function init() {
                     const speed = appSettings.playbackRate || 1.0;
                     tts.setPlaybackRate(speed);
                     els.speedDisplay.innerText = `${speed.toFixed(1)}x`;
+                    const volume = appSettings.volume !== undefined ? appSettings.volume : 1.0;
+                    tts.setVolume(volume);
+                    els.volumeSlider.value = volume;
                 });
             } else {
                 // Show Login Button
@@ -137,6 +140,10 @@ function init() {
     const speed = appSettings.playbackRate || 1.0;
     tts.setPlaybackRate(speed);
     els.speedDisplay.innerText = `${speed.toFixed(1)}x`;
+
+    const volume = appSettings.volume !== undefined ? appSettings.volume : 1.0;
+    tts.setVolume(volume);
+    els.volumeSlider.value = volume;
     
     shortcuts.setupKeyboardShortcuts(
         ttsManager.toggleTTS, 
@@ -153,7 +160,9 @@ function init() {
 }
 
 function setupEventListeners() {
-    els.fileInput.addEventListener('change', readerManager.handleFileSelect);
+    els.fileInput.addEventListener('change', (e) => {
+        readerManager.handleFileSelect(e);
+    });
     els.batchImportInput.addEventListener('change', dataManager.handleBatchImport);
     els.wordListBtn.addEventListener('click', wordListManager.openWordList);
     els.prevBtn.addEventListener('click', () => readerManager.navigate(-1, false));
@@ -178,6 +187,7 @@ function setupEventListeners() {
     els.speedDownBtn.addEventListener('click', () => ttsManager.updateSpeed(-0.1));
 
     els.audioUpload.addEventListener('change', ttsManager.handleAudioFileUpload);
+    els.volumeSlider.addEventListener('input', (e) => ttsManager.updateVolume(parseFloat(e.target.value)));
 
     els.wordLinkInput.addEventListener('input', editorManager.updateLinkPreview);
     els.wordTagsInput.addEventListener('input', editorManager.updateTagSuggestions);

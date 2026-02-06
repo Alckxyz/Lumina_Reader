@@ -52,7 +52,7 @@ export async function handleBatchImport(e) {
     if (files.length === 0) return;
 
     // Categorize files
-    const bookExts = ['epub', 'pdf', 'txt'];
+    const bookExts = ['epub', 'pdf', 'txt', 'srt'];
     const audioExts = ['mp3', 'wav', 'm4a', 'ogg', 'aac', 'flac', 'webm'];
     
     const bookFile = files.find(f => bookExts.includes(f.name.split('.').pop().toLowerCase()));

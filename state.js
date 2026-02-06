@@ -3,6 +3,7 @@ export const DEFAULT_SETTINGS = {
     paragraphsPerPage: (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) ? 5 : 6,
     colors: ['#f1c40f', '#e67e22', '#e74c3c', '#9b59b6', '#2ecc71'],
     playbackRate: 1.0,
+    volume: 1.0,
     progress: {} // Keyed by filename
 };
 
@@ -66,6 +67,7 @@ export const runtime = {
     hoveredElement: null,
     phraseStartWord: null, // Track the word that started a multi-word selection
     isLongPress: false, // Flag to indicate if the current interaction was a long press
+    srtTimings: null, // Stores timestamp data for SRT files
     colorChangedInEditor: false, // Flag to track if the user manually clicked a color bubble
     totalContentLength: 0,
     pageOffsets: [] // Starting character index for each page/section

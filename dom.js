@@ -15,6 +15,8 @@ export const els = {
     speedUpBtn: document.getElementById('speed-up'),
     speedDownBtn: document.getElementById('speed-down'),
     speedDisplay: document.getElementById('speed-display'),
+    volumeSlider: document.getElementById('volume-slider'),
+    volumeIcon: document.getElementById('volume-icon'),
     fontSizeSlider: document.getElementById('font-size-slider'),
     paragraphsSlider: document.getElementById('paragraphs-per-page-slider'),
     paragraphsVal: document.getElementById('paragraphs-val'),

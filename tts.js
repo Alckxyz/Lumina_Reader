@@ -1,4 +1,5 @@
 import { createIcons } from 'lucide';
+import { runtime } from './state.js';
 
 let audio = new Audio();
 let sentences = [];
@@ -19,7 +20,8 @@ export const ttsState = {
     get currentTime() { return audio.currentTime; },
     get duration() { return audio.duration; },
     get isLoaded() { return isAudioLoaded && audio.src; },
-    get playbackRate() { return currentPlaybackRate; }
+    get playbackRate() { return currentPlaybackRate; },
+    get volume() { return audio.volume; }
 };
 
 export function setAudioSource(file) {
@@ -95,7 +97,7 @@ export function prepareSync(container, pageStartIndex = 0, totalGlobalLength = 0
         let currentSentence = { elements: [], text: "", localOffset: 0 };
 
         wordElements.forEach((el, idx) => {
-            const text = el.innerText;
+            const text = el.textContent;
             // Capture any text/punctuation between this word and the next
             let separator = "";
             let next = el.nextSibling;
@@ -107,8 +109,15 @@ export function prepareSync(container, pageStartIndex = 0, totalGlobalLength = 0
             currentSentence.elements.push(el);
             currentSentence.text += text + separator;
 
-            // Check for sentence end markers in the separator or the word itself
-            const isEndOfSentence = /[.!?]/.test(text) || /[.!?]/.test(separator);
+            // Check for sentence end markers
+            // For SRT files, we must ONLY split on the double-newline separator to match SRT blocks precisely.
+            // For other files, we use standard punctuation markers.
+            let isEndOfSentence = false;
+            if (runtime.srtTimings && runtime.srtTimings.length > 0) {
+                isEndOfSentence = separator.includes('\n\n');
+            } else {
+                isEndOfSentence = /[.!?]/.test(text) || /[.!?]/.test(separator);
+            }
 
             if (isEndOfSentence || idx === wordElements.length - 1) {
                 if (currentSentence.elements.length > 0) {
@@ -120,7 +129,8 @@ export function prepareSync(container, pageStartIndex = 0, totalGlobalLength = 0
         });
 
         const triggerCalc = () => {
-            if (audio.duration && !isNaN(audio.duration)) {
+            const isSrt = !!(runtime.srtTimings && runtime.srtTimings.length > 0);
+            if (isSrt || (audio.duration && !isNaN(audio.duration))) {
                 calculateTimings(pageStartIndex, totalGlobalLength);
             } else {
                 audio.addEventListener('loadedmetadata', () => calculateTimings(pageStartIndex, totalGlobalLength), { once: true });
@@ -132,19 +142,46 @@ export function prepareSync(container, pageStartIndex = 0, totalGlobalLength = 0
 }
 
 function calculateTimings(pageStartIndex, totalGlobalLength) {
-    if (!audio.duration || sentences.length === 0) return;
-    
-    // If totalGlobalLength is 0, we fallback to page-only sync (old behavior)
-    const effectiveTotal = totalGlobalLength || sentences.reduce((sum, s) => sum + s.text.length, 0);
-    const effectiveStart = totalGlobalLength ? pageStartIndex : 0;
+    if (runtime.srtTimings && runtime.srtTimings.length > 0) {
+        // Use exact SRT timings instead of estimations
+        sentences.forEach(s => {
+            const globalOffset = (totalGlobalLength ? pageStartIndex : 0) + s.localOffset;
+            
+            // Find the SRT block that starts closest to or before this sentence
+            // Since we join with \n\n in loadSrt/paginateContent, the blocks are spaced.
+            let srtBlock = null;
+            for (let i = 0; i < runtime.srtTimings.length; i++) {
+                const t = runtime.srtTimings[i];
+                const nextT = runtime.srtTimings[i+1];
+                
+                // If the sentence starts after or at this block's offset, 
+                // and before the next block's offset, it belongs to this one.
+                if (globalOffset >= t.charOffset && (!nextT || globalOffset < nextT.charOffset)) {
+                    srtBlock = t;
+                    break;
+                }
+            }
 
-    sentences.forEach(s => {
-        const startChar = effectiveStart + s.localOffset;
-        const endChar = startChar + s.text.length;
+            if (srtBlock) {
+                s.startTime = srtBlock.start;
+                s.endTime = srtBlock.end;
+            }
+        });
+    } else {
+        if (!audio.duration || sentences.length === 0) return;
         
-        s.startTime = (startChar / effectiveTotal) * audio.duration;
-        s.endTime = (endChar / effectiveTotal) * audio.duration;
-    });
+        // If totalGlobalLength is 0, we fallback to page-only sync (old behavior)
+        const effectiveTotal = totalGlobalLength || sentences.reduce((sum, s) => sum + s.text.length, 0);
+        const effectiveStart = totalGlobalLength ? pageStartIndex : 0;
+
+        sentences.forEach(s => {
+            const startChar = effectiveStart + s.localOffset;
+            const endChar = startChar + s.text.length;
+            
+            s.startTime = (startChar / effectiveTotal) * audio.duration;
+            s.endTime = (endChar / effectiveTotal) * audio.duration;
+        });
+    }
 
     // Manually trigger highlight update after timings are ready
     updateSyncHighlight();
@@ -188,6 +225,10 @@ export function togglePauseResume(playBtn, PlayIcon, PauseIcon) {
 export function setPlaybackRate(rate) {
     currentPlaybackRate = rate;
     audio.playbackRate = rate;
+}
+
+export function setVolume(val) {
+    audio.volume = Math.max(0, Math.min(1, val));
 }
 
 export function skip(seconds) {

@@ -76,13 +76,24 @@ export async function loadFile(file) {
     els.ttsBar.classList.remove('hidden');
     tts.stopTTS();
 
-    if (ext === 'epub') await loadEpub(file);
+    if (ext === 'epub') {
+        runtime.srtTimings = null;
+        await loadEpub(file);
+    }
     else if (ext === 'pdf') {
+        runtime.srtTimings = null;
         runtime.rawTextSource = await reader.loadPdf(file);
         repaginateManualContent();
     }
     else if (ext === 'txt') {
+        runtime.srtTimings = null;
         runtime.rawTextSource = await reader.loadTxt(file);
+        repaginateManualContent();
+    }
+    else if (ext === 'srt') {
+        const { text, timings } = await reader.loadSrt(file);
+        runtime.rawTextSource = text;
+        runtime.srtTimings = timings;
         repaginateManualContent();
     }
 }
@@ -240,7 +251,8 @@ export async function loadEpub(file) {
 
 export function repaginateManualContent() {
     if (!runtime.rawTextSource) return;
-    runtime.pagedContent = reader.paginateContent(runtime.rawTextSource, appSettings.paragraphsPerPage);
+    const isSrt = runtime.currentFileType === 'srt';
+    runtime.pagedContent = reader.paginateContent(runtime.rawTextSource, appSettings.paragraphsPerPage, isSrt);
     runtime.totalContentLength = runtime.rawTextSource.length;
     
     // Calculate page offsets for syncing

@@ -64,6 +64,15 @@
         padding: 0;
         border: none;
         margin: 0;
+        gap: 8px;
+    }
+
+    .volume-control {
+        padding: 6px 8px;
+    }
+
+    #volume-slider {
+        width: 50px;
     }
 
     .audio-upload-label {
