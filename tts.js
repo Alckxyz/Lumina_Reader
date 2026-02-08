@@ -4,6 +4,7 @@ import { runtime } from './state.js';
 let audio = new Audio();
 let sentences = [];
 let currentSentenceIndex = -1;
+let syntheticUtterance = null;
 let isAudioLoaded = false;
 let currentPlaybackRate = 1.0;
 let onUpdateCallback = null;
@@ -69,10 +70,11 @@ function updateSyncHighlight() {
 export function stopTTS(playBtn, PlayIcon) {
     audio.pause();
     audio.currentTime = 0;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
     clearTtsHighlights();
     if (playBtn) {
         playBtn.innerHTML = '<i data-lucide="play"></i>';
-        createIcons({ icons: { Play: PlayIcon } });
+        createIcons({ icons: { play: PlayIcon } });
     }
 }
 
@@ -190,7 +192,11 @@ function calculateTimings(pageStartIndex, totalGlobalLength) {
 export function startPlayback(options) {
     const { speed, onUpdate, onEnd, playBtn, PauseIcon } = options;
     
-    if (!isAudioLoaded) return;
+    if (!isAudioLoaded) {
+        // Fallback to synthetic TTS if no audio file
+        startSyntheticPlayback(options);
+        return;
+    }
     
     if (speed) currentPlaybackRate = speed;
     audio.playbackRate = currentPlaybackRate;
@@ -205,7 +211,46 @@ export function startPlayback(options) {
 
     if (playBtn) {
         playBtn.innerHTML = '<i data-lucide="pause"></i>';
-        createIcons({ icons: { Pause: PauseIcon } });
+        createIcons({ icons: { pause: PauseIcon } });
+    }
+}
+
+function startSyntheticPlayback(options) {
+    if (!window.speechSynthesis || sentences.length === 0) return;
+    const { speed, onEnd, playBtn, PauseIcon } = options;
+    
+    window.speechSynthesis.cancel();
+    
+    const fullText = sentences.map(s => s.text).join("");
+    const utterance = new SpeechSynthesisUtterance(fullText);
+    utterance.rate = speed || currentPlaybackRate;
+    utterance.lang = 'en-US';
+    
+    utterance.onboundary = (event) => {
+        if (event.name === 'sentence' || event.name === 'word') {
+            const charIdx = event.charIndex;
+            const newIdx = sentences.findIndex(s => charIdx >= s.localOffset && charIdx < (s.localOffset + s.text.length));
+            if (newIdx !== -1 && newIdx !== currentSentenceIndex) {
+                if (currentSentenceIndex !== -1 && sentences[currentSentenceIndex]) {
+                    sentences[currentSentenceIndex].elements.forEach(el => el.classList.remove('tts-highlight'));
+                }
+                currentSentenceIndex = newIdx;
+                sentences[newIdx].elements.forEach(el => el.classList.add('tts-highlight'));
+                sentences[newIdx].elements[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    };
+    
+    utterance.onend = () => {
+        clearTtsHighlights();
+        if (onEnd) onEnd();
+    };
+    
+    window.speechSynthesis.speak(utterance);
+    
+    if (playBtn) {
+        playBtn.innerHTML = '<i data-lucide="pause"></i>';
+        createIcons({ icons: { pause: PauseIcon } });
     }
 }
 
@@ -214,11 +259,11 @@ export function togglePauseResume(playBtn, PlayIcon, PauseIcon) {
         audio.playbackRate = currentPlaybackRate;
         audio.play();
         playBtn.innerHTML = '<i data-lucide="pause"></i>';
-        createIcons({ icons: { Pause: PauseIcon } });
+        createIcons({ icons: { pause: PauseIcon } });
     } else {
         audio.pause();
         playBtn.innerHTML = '<i data-lucide="play"></i>';
-        createIcons({ icons: { Play: PlayIcon } });
+        createIcons({ icons: { play: PlayIcon } });
     }
 }
 

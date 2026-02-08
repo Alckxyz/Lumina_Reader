@@ -75,6 +75,35 @@ export function updateLinkPreview() {
     }
 }
 
+export async function translateCurrentWord() {
+    const word = runtime.currentWord;
+    if (!word) return;
+
+    const btn = els.translateWordBtn;
+    btn.classList.add('syncing');
+    
+    try {
+        const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|es`);
+        const data = await response.json();
+        
+        if (data.responseData && data.responseData.translatedText) {
+            const cleanedText = data.responseData.translatedText
+                .replace(/["“”]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            els.wordMeaningInput.value = cleanedText;
+            
+            // Visual feedback on the input field
+            els.wordMeaningInput.classList.add('sentence-copy-flash');
+            setTimeout(() => els.wordMeaningInput.classList.remove('sentence-copy-flash'), 500);
+        }
+    } catch (err) {
+        console.error("Translation error:", err);
+    } finally {
+        btn.classList.remove('syncing');
+    }
+}
+
 export function openWordEditor(word, displayText = null) {
     if (!word) return;
     // Only push a new history state if the modal is currently hidden

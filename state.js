@@ -76,65 +76,102 @@ export const runtime = {
 export function setDictionary(newDict) { dictionary = newDict; }
 export function setSettings(newSettings) { appSettings = newSettings; }
 
-export function exportData() {
-    // 1. Sort dictionary alphabetically and filter ignored words
-    const sortedDict = {};
-    const keys = Object.keys(dictionary)
-        .filter(word => dictionary[word].status !== 'ignored')
-        .sort();
-        
-    for (const key of keys) {
-        sortedDict[key] = dictionary[key];
-    }
+// removed function exportData() {}
+// removed function importData() {}
 
-    // 2. Separate sync data (progress) from general settings for a cleaner structure
-    const { progress, ...prefs } = appSettings;
+export const AI_PROMPT_TEXT = `When I send you a SINGLE word:
 
-    const exportObj = {
-        dictionary: sortedDict,
-        audio_text_sync: progress || {},
-        app_preferences: prefs
-    };
+- If the word is misspelled:
+  wrong_word ❌ → corrected_word ✅
+- If it is correct, say NOTHING about spelling.
 
-    // Use null, 2 for readable indentation (one word/property per row)
-    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lumina_backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-}
+- Start the answer using this format:
+  word — type (noun, verb, adjective, tense, etc.)
 
-export function importData(jsonString) {
-    try {
-        const imported = JSON.parse(jsonString);
-        
-        // Handle Dictionary
-        if (imported.dictionary) {
-            Object.assign(dictionary, imported.dictionary);
-        }
-        
-        // Handle Settings & Sync (Support both old and new "ordered" formats)
-        const settingsToLoad = imported.app_preferences || imported.settings;
-        if (settingsToLoad) {
-            Object.assign(appSettings, { ...DEFAULT_SETTINGS, ...settingsToLoad });
-        }
-        
-        // Load sync data from dedicated field or legacy progress field
-        const syncToLoad = imported.audio_text_sync || (imported.settings ? imported.settings.progress : null);
-        if (syncToLoad) {
-            appSettings.progress = { ...appSettings.progress, ...syncToLoad };
-        }
+- Identify the base form (dictionary form).
+  - This includes words in past, present, or future forms.
+  - If the base form is the same, do NOT mention it.
+  - If it is different, write:
+    Base form: base_form
 
-        // Clean up legacy global progress if it exists in very old files
-        if (!appSettings.progress) appSettings.progress = {};
-        delete appSettings.lastAudioPosition;
-        delete appSettings.lastPage;
-        delete appSettings.lastCfi;
-        
-        return true;
-    } catch (err) {
-        console.error("Import error:", err);
-        return false;
-    }
-}
+- If the base form and the exact word have the SAME meaning:
+  → give ONLY ONE meaning and stop.
+
+- If the meanings are DIFFERENT:
+
+  Base form:
+  meaning
+
+  Exact word:
+  meaning
+
+- Do NOT number sections.
+- Do NOT add explanations or extra text.
+- Do NOT introduce idioms or phrasal verbs at this stage.
+
+---
+
+IDIOMS
+
+- If I send a FULL sentence using the word:
+  - Check if the word is part of an idiomatic expression in THAT sentence.
+  - ONLY THEN show:
+
+  Idiomatic expression (base form):
+  Meaning:
+
+- If no idiom appears in the sentence, do NOT mention idioms.
+
+---
+
+SYNONYM / PHRASE REPLACEMENT (USING *) — STRICT
+
+- If I send * word1:
+  - Replace the FIRST occurrence of that word in the LAST meaning you gave
+    with ONE natural synonym.
+  - The synonym MUST NOT be:
+    - the original headword being defined
+    - the same word being replaced
+
+- If I send * word1, word2, word3:
+  - Replace EACH listed word independently.
+  - Use ONE appropriate synonym per word.
+  - Keep the rest of the meaning unchanged.
+
+- If I send * a full phrase:
+  - Replace ONLY that exact phrase with a synonymous phrase.
+  - The replacement must preserve the original meaning.
+  - Do NOT rewrite the rest of the sentence.
+
+- General rules for all * replacements:
+  - Replace ONLY the specified word(s) or phrase.
+  - Do NOT repeat the original word(s) or phrase.
+  - Do NOT change word order outside the replacement.
+  - Do NOT add or remove other words.
+  - If a replacement is not possible, say:
+    Cannot apply replacement.
+
+---
+
+If I send "+" alone:
+- Give another meaning.
+
+If I send "#":
+- Give the same meaning in a different form.
+
+---
+
+FORMAT RULE (MANDATORY)
+
+Always use this structure:
+
+word — type
+
+Base form: (only if different)
+meaning
+
+Exact word: (only if meanings are different)
+meaning
+
+Do NOT repeat labels.
+Do NOT add extra text.`;

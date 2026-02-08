@@ -16,6 +16,7 @@ export function closeAllOverlays() {
         els.wordModal, 
         els.wordListModal, 
         els.translationModal,
+        els.syncToolModal,
         els.actionPopup,
         els.selectionPopup,
         els.tooltip,
@@ -26,6 +27,10 @@ export function closeAllOverlays() {
     overlays.forEach(el => {
         if (el && !el.classList.contains('hidden')) {
             el.classList.add('hidden');
+            if (el === els.syncToolModal) {
+                // Restore main playback state (restore position and speed)
+                import('./sync_tool_manager.js').then(m => m.closeSyncTool());
+            }
             closed = true;
         }
     });

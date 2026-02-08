@@ -52,6 +52,10 @@ export function setupKeyboardShortcuts(onToggleTTS, onRestartTTS, onSkipTTS) {
             els.translationModal.classList.add('hidden');
             els.wordModal.classList.add('hidden');
             els.wordListModal.classList.add('hidden');
+            if (!els.syncToolModal.classList.contains('hidden')) {
+                els.syncToolModal.classList.add('hidden');
+                tts.setPlaybackRate(appSettings.playbackRate);
+            }
             els.tooltip.classList.add('hidden');
             els.selectionPopup.classList.add('hidden');
             els.wordTagsSuggestions.classList.add('hidden');

@@ -1,10 +1,75 @@
-import { importData, appSettings, runtime, persist } from './state.js';
+import { appSettings, runtime, persist, DEFAULT_SETTINGS, dictionary } from './state.js';
 import { els } from './dom.js';
 import * as reader from './reader.js';
 import * as tts from './tts.js';
 import * as wordManager from './word_manager.js';
 import * as readerManager from './reader_manager.js';
 import { renderColorSettings, applyGlobalColors } from './settings_manager.js';
+
+export function exportData() {
+    // 1. Sort dictionary alphabetically and filter ignored words
+    const sortedDict = {};
+    const keys = Object.keys(dictionary)
+        .filter(word => dictionary[word].status !== 'ignored')
+        .sort();
+        
+    for (const key of keys) {
+        sortedDict[key] = dictionary[key];
+    }
+
+    // 2. Separate sync data (progress) from general settings for a cleaner structure
+    const { progress, ...prefs } = appSettings;
+
+    const exportObj = {
+        dictionary: sortedDict,
+        audio_text_sync: progress || {},
+        app_preferences: prefs
+    };
+
+    // Use null, 2 for readable indentation (one word/property per row)
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lumina_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+}
+
+export function importData(jsonString) {
+    try {
+        const imported = JSON.parse(jsonString);
+        
+        // Handle Dictionary
+        if (imported.dictionary) {
+            // Clear current dictionary while keeping reference
+            for (const key in dictionary) delete dictionary[key];
+            Object.assign(dictionary, imported.dictionary);
+        }
+        
+        // Handle Settings & Sync (Support both old and new "ordered" formats)
+        const settingsToLoad = imported.app_preferences || imported.settings;
+        if (settingsToLoad) {
+            Object.assign(appSettings, { ...DEFAULT_SETTINGS, ...settingsToLoad });
+        }
+        
+        // Load sync data from dedicated field or legacy progress field
+        const syncToLoad = imported.audio_text_sync || (imported.settings ? imported.settings.progress : null);
+        if (syncToLoad) {
+            appSettings.progress = { ...appSettings.progress, ...syncToLoad };
+        }
+
+        // Clean up legacy global progress if it exists in very old files
+        if (!appSettings.progress) appSettings.progress = {};
+        delete appSettings.lastAudioPosition;
+        delete appSettings.lastPage;
+        delete appSettings.lastCfi;
+        
+        return true;
+    } catch (err) {
+        console.error("Import error:", err);
+        return false;
+    }
+}
 
 export async function handleImport(file, silent = false) {
     if (!file) return;

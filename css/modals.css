@@ -150,3 +150,112 @@
 .word-list-meaning { font-size: 0.85rem; color: var(--text-muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .word-list-tags { font-size: 0.7rem; color: var(--secondary-color); margin-top: 4px; }
 .word-list-empty { text-align: center; color: var(--text-muted); margin-top: 40px; font-style: italic; }
+
+/* Sync Tool Styles */
+.sync-tool-content {
+    max-width: 600px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important; /* Force internal layout only */
+}
+
+.sync-tool-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.sync-controls-top {
+    background: #252525;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.sync-controls-bottom {
+    flex-shrink: 0;
+    padding: 8px 0;
+}
+
+.sync-playback-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+#sync-time-display {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+.sync-segments-list {
+    flex: 1;
+    overflow-y: auto;
+    background: #111;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 40vh; /* Allow enough space to scroll bottom lines to top */
+}
+
+.sync-segment {
+    padding: 8px 12px;
+    background: #1a1a1a;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.sync-segment.active {
+    background: #333;
+    border-color: var(--primary-color);
+}
+
+.sync-segment.synced {
+    border-left: 3px solid var(--secondary-color);
+}
+
+.sync-segment-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.sync-segment-time {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.sync-big-btn {
+    width: 100%;
+    padding: 18px !important;
+    font-size: 1.2rem !important;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(187, 134, 252, 0.3);
+}
+
+.sync-big-btn:active {
+    transform: scale(0.98);
+}
