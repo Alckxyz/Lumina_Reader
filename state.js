@@ -89,20 +89,29 @@ export const AI_PROMPT_TEXT = `When I send you a SINGLE word:
   word — type (noun, verb, adjective, tense, etc.)
 
 - Identify the base form (dictionary form).
-  - This includes words in past, present, or future forms.
+  - This includes:
+    - Verb forms (past, present, future, -ing, -ed, etc.).
+    - Adjectives derived from verbs (e.g., impending → impend).
+    - Other grammatical shifts (noun ↔ verb ↔ adjective).
   - If the base form is the same, do NOT mention it.
   - If it is different, write:
-    Base form: base_form
+    Base form: base_form — type
 
-- If the base form and the exact word have the SAME meaning:
-  → give ONLY ONE meaning and stop.
+- CRITICAL RULE:
+  If the base form and the exact word express the SAME core meaning,
+  even if the grammatical category is different (verb, adjective, etc.),
+  give ONLY ONE shared meaning and STOP.
+  Do NOT separate them.
+  Do NOT restate the meaning.
+
+- Only separate meanings if the semantic meaning is truly different.
 
 - If the meanings are DIFFERENT:
 
-  Base form:
+  Base form — type:
   meaning
 
-  Exact word:
+  Exact word — type:
   meaning
 
 - Do NOT number sections.
@@ -167,11 +176,10 @@ Always use this structure:
 
 word — type
 
-Base form: (only if different)
+Base form: base_form — type (only if different)
+
 meaning
 
-Exact word: (only if meanings are different)
-meaning
-
-Do NOT repeat labels.
+Only include separate sections if meanings are different.
+Do NOT repeat meanings.
 Do NOT add extra text.`;
